@@ -4,7 +4,6 @@
 pub mod adafruit_MCP4728;
 use adafruit_MCP4728::AdafruitMCP4728;
 
-// use core::fmt::Write;
 use cortex_m::delay::Delay;
 use embedded_hal::delay::DelayNs;
 use embedded_hal::digital::OutputPin;
@@ -51,15 +50,11 @@ fn bit_write(byte: &mut u8, bit: u8, value: bool) {
 
 #[entry]
 fn main() -> ! {
-    // Grab our singleton objects
     let mut pac = pac::Peripherals::take().unwrap();
-
-    // Set up the watchdog driver - needed by the clock setup code
+    // watchdog driver needed by the clock setup code
     let mut watchdog = hal::Watchdog::new(pac.WATCHDOG);
 
-    // Configure the clocks
-    //
-    // The default is to generate a 125 MHz system clock
+    // default is to generate a 125 MHz system clock
     let clocks = hal::clocks::init_clocks_and_plls(
         rp_pico::XOSC_CRYSTAL_FREQ,
         pac.XOSC,
@@ -72,10 +67,10 @@ fn main() -> ! {
     .ok()
     .unwrap();
 
-    // The single-cycle I/O block controls our GPIO pins
+    // single-cycle I/O block controls GPIO pins
     let sio = hal::Sio::new(pac.SIO);
 
-    // Set the pins up according to their function on this particular board
+    // set the pins up according to their function on this particular board (pico pi)
     let pins = rp_pico::Pins::new(
         pac.IO_BANK0,
         pac.PADS_BANK0,
@@ -83,19 +78,18 @@ fn main() -> ! {
         &mut pac.RESETS,
     );
 
-    // Configure two pins as being I²C, not GPIO
+    // configure two I2C pins, not GPIO
     let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio16.reconfigure();
     let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio17.reconfigure();
 
-    // Create the I²C driver, using the two pre-configured pins. This will fail
-    // at compile time if the pins are in the wrong mode, or if this I²C
+    // create the I2C driver, using the two pre-configured pins; will fail
+    // at compile time if the pins are in the wrong mode, or if this I2C
     // peripheral isn't available on these pins!
     let i2c = hal::I2C::i2c0(
         pac.I2C0,
         sda_pin,
         scl_pin,
-        400.kHz(),
-        // linux_embedded_hal::i2c::Speed::Standard(400_000),
+        400.kHz(), // from fugit::RateExtU32
         &mut pac.RESETS,
         &clocks.peripheral_clock,
     );
@@ -115,7 +109,7 @@ fn main() -> ! {
 
     let mut dac0value: u16 = 0;
 
-    // 74HC595 Shift Register stuff
+    // 74HC595 shift register stuff
     let core = pac::CorePeripherals::take().unwrap();
     let latchPinA = 2; // ST_CP latch - green wire
     let clockPinA = 3; // SH_CP clock - yellow wire
@@ -124,7 +118,7 @@ fn main() -> ! {
     let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure();
     let mut clockPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio3.reconfigure();
     let mut dataPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio4.reconfigure();
-    let mut delay = Delay::new(core.SYST, 125_000_000); // Assuming 125 MHz clock
+    let mut delay = Delay::new(core.SYST, 125_000_000); // ...assuming 125 MHz clock
 
     let mut bitToSet: u8 = 0;
     loop {
@@ -134,7 +128,7 @@ fn main() -> ! {
             dac0value = 0;
         }
 
-        // 74HC595 Shift Register stuff
+        // 74HC595 shift register blinky stuff
         latchPin.set_low().unwrap();
         let mut bitsToSend: u8 = 0;
         bit_write(&mut bitsToSend, bitToSet, true);
