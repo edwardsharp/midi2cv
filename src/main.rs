@@ -104,6 +104,7 @@ fn main() -> ! {
     let mut dac0value: u16 = 0;
 
     // 74HC595 shift register stuff
+    // mostly ported from: https://docs.arduino.cc/tutorials/communication/guide-to-shift-out/
     let core = pac::CorePeripherals::take().unwrap();
 
     let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure(); // ST_CP latch - green wire
