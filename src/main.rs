@@ -5,12 +5,49 @@ pub mod adafruit_MCP4728;
 use adafruit_MCP4728::AdafruitMCP4728;
 
 // use core::fmt::Write;
+use cortex_m::delay::Delay;
 use embedded_hal::delay::DelayNs;
+use embedded_hal::digital::OutputPin;
 use fugit::RateExtU32;
+use hal::gpio::{bank0, FunctionI2C, FunctionSioOutput, Pin, PullNone};
 use panic_halt as _;
 use rp_pico::entry;
 use rp_pico::hal;
+
 use rp_pico::hal::pac;
+
+fn shift_out(
+    data_pin: &mut Pin<bank0::Gpio4, FunctionSioOutput, PullNone>,
+    clock_pin: &mut Pin<bank0::Gpio3, FunctionSioOutput, PullNone>,
+    value: u8,
+    delay: &mut Delay,
+) {
+    for i in 0..8 {
+        if (value & (1 << i)) != 0 {
+            data_pin.set_high().unwrap();
+        } else {
+            data_pin.set_low().unwrap();
+        }
+        clock_pin.set_high().unwrap();
+        delay.delay_us(1);
+        clock_pin.set_low().unwrap();
+        delay.delay_us(1);
+    }
+}
+fn digital_write(pin: &mut Pin<bank0::Gpio2, FunctionSioOutput, PullNone>, value: bool) {
+    if value {
+        pin.set_high().unwrap();
+    } else {
+        pin.set_low().unwrap();
+    }
+}
+fn bit_write(byte: &mut u8, bit: u8, value: bool) {
+    if value {
+        *byte |= 1 << bit;
+    } else {
+        *byte &= !(1 << bit);
+    }
+}
 
 #[entry]
 fn main() -> ! {
@@ -47,8 +84,8 @@ fn main() -> ! {
     );
 
     // Configure two pins as being I²C, not GPIO
-    let sda_pin: hal::gpio::Pin<_, hal::gpio::FunctionI2C, _> = pins.gpio16.reconfigure();
-    let scl_pin: hal::gpio::Pin<_, hal::gpio::FunctionI2C, _> = pins.gpio17.reconfigure();
+    let sda_pin: Pin<_, FunctionI2C, _> = pins.gpio16.reconfigure();
+    let scl_pin: Pin<_, FunctionI2C, _> = pins.gpio17.reconfigure();
 
     // Create the I²C driver, using the two pre-configured pins. This will fail
     // at compile time if the pins are in the wrong mode, or if this I²C
@@ -76,5 +113,38 @@ fn main() -> ! {
     dac.set_channel_value(2, 2048);
     dac.set_channel_value(3, 4095);
 
-    loop {}
+    let mut dac0value: u16 = 0;
+
+    // 74HC595 Shift Register stuff
+    let core = pac::CorePeripherals::take().unwrap();
+    let latchPinA = 2; // ST_CP latch - green wire
+    let clockPinA = 3; // SH_CP clock - yellow wire
+    let dataPinA = 4; // DS data - blue wire
+
+    let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure();
+    let mut clockPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio3.reconfigure();
+    let mut dataPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio4.reconfigure();
+    let mut delay = Delay::new(core.SYST, 125_000_000); // Assuming 125 MHz clock
+
+    let mut bitToSet: u8 = 0;
+    loop {
+        dac.set_channel_value(0, dac0value);
+        dac0value += 100;
+        if (dac0value >= 4095) {
+            dac0value = 0;
+        }
+
+        // 74HC595 Shift Register stuff
+        latchPin.set_low().unwrap();
+        let mut bitsToSend: u8 = 0;
+        bit_write(&mut bitsToSend, bitToSet, true);
+        shift_out(&mut dataPin, &mut clockPin, bitsToSend, &mut delay);
+        latchPin.set_high().unwrap();
+        bitToSet += 1;
+        if (bitToSet > 8) {
+            bitToSet = 0;
+        }
+
+        delay.delay_ms(100);
+    }
 }
