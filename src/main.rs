@@ -107,6 +107,7 @@ fn main() -> ! {
     // mostly ported from: https://docs.arduino.cc/tutorials/communication/guide-to-shift-out/
     let core = pac::CorePeripherals::take().unwrap();
 
+    // #TODO: look into `.into_push_pull_output()` and avoid the explicit types (`Pin<_, FunctionSioOutput, PullNone>`) on these vars :/
     let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure(); // ST_CP latch - green wire
     let mut clockPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio3.reconfigure(); // SH_CP clock - yellow wire
     let mut dataPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio4.reconfigure(); // DS data - blue wire
@@ -121,6 +122,8 @@ fn main() -> ! {
         }
 
         // 74HC595 shift register blinky stuff
+        // #TODO: put all this stuff in it's own fn
+        // #TODO: oh also figure out how to have multiple on at once (this just does one channel at a time)
         latchPin.set_low().unwrap();
         let mut bitsToSend: u8 = 0;
         bit_write(&mut bitsToSend, bitToSet, true);
