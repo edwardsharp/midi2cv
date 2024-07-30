@@ -95,6 +95,7 @@ fn main() -> ! {
     // let channel = 0; // Channel number (0-3)
     // let value = 2048; // Value to set (0-4095 for 12-bit DAC)
     // dac.set_channel_value(channel, value);
+    // #TODO: should handle errors, here :/
     let _ = dac.set_channel_value(0, 0);
     let _ = dac.set_channel_value(1, 1000);
     let _ = dac.set_channel_value(2, 2048);
