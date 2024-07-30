@@ -141,7 +141,7 @@ fn main() -> ! {
         shift_out(&mut dataPin, &mut clockPin, bitsToSend, &mut delay);
         latchPin.set_high().unwrap();
         bitToSet += 1;
-        if (bitToSet > 8) {
+        if (bitToSet > 7) {
             bitToSet = 0;
         }
 
