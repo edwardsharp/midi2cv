@@ -5,7 +5,6 @@ pub mod adafruit_MCP4728;
 use adafruit_MCP4728::AdafruitMCP4728;
 
 use cortex_m::delay::Delay;
-use embedded_hal::delay::DelayNs;
 use embedded_hal::digital::OutputPin;
 use fugit::RateExtU32;
 use hal::gpio::{bank0, FunctionI2C, FunctionSioOutput, Pin, PullNone};
@@ -33,13 +32,7 @@ fn shift_out(
         delay.delay_us(1);
     }
 }
-fn digital_write(pin: &mut Pin<bank0::Gpio2, FunctionSioOutput, PullNone>, value: bool) {
-    if value {
-        pin.set_high().unwrap();
-    } else {
-        pin.set_low().unwrap();
-    }
-}
+
 fn bit_write(byte: &mut u8, bit: u8, value: bool) {
     if value {
         *byte |= 1 << bit;
@@ -102,29 +95,26 @@ fn main() -> ! {
     // let channel = 0; // Channel number (0-3)
     // let value = 2048; // Value to set (0-4095 for 12-bit DAC)
     // dac.set_channel_value(channel, value);
-    dac.set_channel_value(0, 0);
-    dac.set_channel_value(1, 1000);
-    dac.set_channel_value(2, 2048);
-    dac.set_channel_value(3, 4095);
+    let _ = dac.set_channel_value(0, 0);
+    let _ = dac.set_channel_value(1, 1000);
+    let _ = dac.set_channel_value(2, 2048);
+    let _ = dac.set_channel_value(3, 4095);
 
     let mut dac0value: u16 = 0;
 
     // 74HC595 shift register stuff
     let core = pac::CorePeripherals::take().unwrap();
-    let latchPinA = 2; // ST_CP latch - green wire
-    let clockPinA = 3; // SH_CP clock - yellow wire
-    let dataPinA = 4; // DS data - blue wire
 
-    let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure();
-    let mut clockPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio3.reconfigure();
-    let mut dataPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio4.reconfigure();
+    let mut latchPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio2.reconfigure(); // ST_CP latch - green wire
+    let mut clockPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio3.reconfigure(); // SH_CP clock - yellow wire
+    let mut dataPin: Pin<_, FunctionSioOutput, PullNone> = pins.gpio4.reconfigure(); // DS data - blue wire
     let mut delay = Delay::new(core.SYST, 125_000_000); // ...assuming 125 MHz clock
 
     let mut bitToSet: u8 = 0;
     loop {
-        dac.set_channel_value(0, dac0value);
+        let _ = dac.set_channel_value(0, dac0value);
         dac0value += 100;
-        if (dac0value >= 4095) {
+        if dac0value >= 4095 {
             dac0value = 0;
         }
 
@@ -135,7 +125,7 @@ fn main() -> ! {
         shift_out(&mut dataPin, &mut clockPin, bitsToSend, &mut delay);
         latchPin.set_high().unwrap();
         bitToSet += 1;
-        if (bitToSet > 7) {
+        if bitToSet > 7 {
             bitToSet = 0;
         }
 
