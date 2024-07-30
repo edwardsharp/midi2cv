@@ -1,5 +1,7 @@
 # MIDI2CV
 
+💁‍♀️ ohey! check out where i'm at with rev2 (now with more rust!) https://github.com/edwardsharp/midi2cv/pull/1
+
 just some musing on a midi to cv (control voltage) converter for eurorack.
 
 it's basically 4 mcp4728 DACs to provide 16 channels of control voltages (0-5v). there's a midi interface for 3.5mm TRS input which uses [adafruit's midiwing kit](https://www.adafruit.com/product/4740). all powered by a rp2040 microcontroller (in this case an[adafruit feather](https://www.adafruit.com/product/4884))
