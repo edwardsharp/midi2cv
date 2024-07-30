@@ -1,3 +1,4 @@
+// so this is a crude, minimal port of this: https://github.com/adafruit/Adafruit_MCP4728/
 use embedded_hal::i2c::{Error, I2c};
 
 pub struct AdafruitMCP4728<I2C> {
@@ -25,22 +26,6 @@ impl<I2C: I2c> AdafruitMCP4728<I2C> {
         self.i2c.write(self.address, &[RESET])
     }
 
-    /**
-     * @brief Sets the input register for a given channel to the specified settings
-     *
-     * @param channel The channel to update
-     * @param new_value The new value to assign
-     * @param new_vref Optional vref setting - Defaults to `MCP4728_VREF_VDD`
-     * @param new_gain Optional gain setting - Defaults to `MCP4728_GAIN_1X`
-     * @param new_pd_mode Optional power down mode setting - Defaults to
-     * `MCP4728_PD_MOOE_NORMAL`
-     * @param udac Optional UDAC setting - Defaults to `false`, latching
-     * immediately. Set to `true` to latch when the LDAC pin is pulled low
-     *
-     * @return true if the write was successful
-     * @return false if there was an error with I2C communication between the MCU
-     * and the DAC
-     */
     pub fn set_channel_value(&mut self, channel: u8, value: u16) -> Result<(), I2C::Error> {
         let mut new_value: u16 = value;
 
@@ -58,12 +43,6 @@ impl<I2C: I2c> AdafruitMCP4728<I2C> {
         new_value |= ((MCP4728_VREF_VDD as u16) << 15);
         new_value |= ((MCP4728_PD_MODE_NORMAL as u16) << 13);
         new_value |= ((MCP4728_GAIN_1X as u16) << 12);
-
-        // let mut new_u8_value: u8 = if value > u8::MAX as u16 {
-        //     u8::MAX
-        // } else {
-        //     new_value as u8
-        // };
 
         output_buffer[1] = (new_value >> 8) as u8;
         output_buffer[2] = (new_value & 0xFF) as u8;

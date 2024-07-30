@@ -103,11 +103,11 @@ fn main() -> ! {
     let address: u8 = 0x60;
 
     let mut dac = AdafruitMCP4728::new(i2c, address);
-    // dac.begin()?;
-    // Set the channel value
+
+    // set the channel value, for example:
     // let channel = 0; // Channel number (0-3)
     // let value = 2048; // Value to set (0-4095 for 12-bit DAC)
-    // dac.set_channel_value(channel, value)?;
+    // dac.set_channel_value(channel, value);
     dac.set_channel_value(0, 0);
     dac.set_channel_value(1, 1000);
     dac.set_channel_value(2, 2048);
