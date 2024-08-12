@@ -1,22 +1,19 @@
 # MIDI2CV
 
-💁‍♀️ ohey! check out where i'm at with rev2 (now with more rust!) https://github.com/edwardsharp/midi2cv/pull/1
-
 just some musing on a midi to cv (control voltage) converter for eurorack.
 
-it's basically 4 mcp4728 DACs to provide 16 channels of control voltages (0-5v). there's a midi interface for 3.5mm TRS input which uses [adafruit's midiwing kit](https://www.adafruit.com/product/4740). all powered by a rp2040 microcontroller (in this case an[adafruit feather](https://www.adafruit.com/product/4884))
+this is the code for the second revision. which uses usb midi!
 
-and finally, a [circuit python](https://circuitpython.org/) script to coble it all together. for each midi channel, there's an output voltage for the single note (monophonic) being played, it's scaled from 0-127 (midi note) to 0-5v (roughly 12bit resolution).
+there's 4 mcp4728 DACs that provide 16 channels of control voltages (0-5v). 8 of those are for notes, the other 8 are for note velocities, and the other 8 are gates (the gates and leds are controlled via a [74HC595 shift register](https://www.adafruit.com/product/450)). there's a usb midi interface which uses [adafruit's rp2040 with usb host board](https://learn.adafruit.com/assets/120411). the [EZ_USB_MIDI_HOST](https://github.com/rppicomidi/EZ_USB_MIDI_HOST/) handles usb midi and uses the Pico-PIO-USB library (programmable input/output) as a software usb host controller by was of [sekigon-gonnoc/Pico-PIO-USB](https://github.com/sekigon-gonnoc/Pico-PIO-USB).
 
-### dev notes
+**IMPORTANT NOTE:** i ended up using v`0.5.3` of this library because the newest version (v`0.6.0` at the time of writing this) was very unstable [read more in this github issue](https://github.com/sekigon-gonnoc/Pico-PIO-USB/issues/122).
 
-make sure you have these libraries:
+i also ran into another dead end where my rp2040 would crash when sending i2c data to more than one mcp4728 DAC so i used another rp2040 (a [kb2040](https://learn.adafruit.com/assets/106984), that adafruit sent me as a freebie) to do the i2c communication with the DACs and use serial UART between the two rp2040s. :feelsgood:
 
-[adafruit_bus_device](https://github.com/adafruit/Adafruit_CircuitPython_BusDevice)
+_so please note:_
 
-[adafruit_mcp4728.mpy](https://github.com/adafruit/Adafruit_MCP4728)
-
-[adafruit_midi](https://github.com/adafruit/Adafruit_CircuitPython_MIDI)
+1. `midi2` is the arduino sketch for the [rp2040 with usb host](https://www.adafruit.com/product/5723)
+2. `2cv` is the arduino sketch for the [kb2040](https://www.adafruit.com/product/5302)
 
 ![midi2cv prototype](midi2cv.png)
 
