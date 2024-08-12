@@ -1,0 +1,23 @@
+[package]
+name = "midi2cv"
+version = "0.1.0"
+edition = "2021"
+build = "build.rs"
+
+[dependencies]
+adafruit-feather-rp2040 = "0.8.0"
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.3"
+embedded-hal = "1.0.0"
+fugit = "0.3.7"
+nb = "1.1.0"
+panic-halt = "0.2.0"
+rp-pico = "0.9.0"
+smart-leds = "0.4.0"
+smart-leds-trait = "0.3.0"
+ws2812-pio = "0.8.0"
+rp2040-hal = "0.3.0"
+
+[build-dependencies]
+bindgen = "0.69.4"
+cc = "1.1.7"
