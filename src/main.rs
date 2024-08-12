@@ -1,6 +1,14 @@
 #![no_std]
 #![no_main]
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+
+mod bindings {
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+use bindings::*;
+
 pub mod adafruit_MCP4728;
 use adafruit_MCP4728::AdafruitMCP4728;
 
@@ -129,6 +137,7 @@ fn main() -> ! {
         bit_write(&mut bitsToSend, bitToSet, true);
         shift_out(&mut dataPin, &mut clockPin, bitsToSend, &mut delay);
         latchPin.set_high().unwrap();
+
         bitToSet += 1;
         if bitToSet > 7 {
             bitToSet = 0;
