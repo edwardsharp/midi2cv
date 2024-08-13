@@ -35,12 +35,6 @@
 Adafruit_USBH_Host USBHost;
 USING_NAMESPACE_MIDI
 USING_NAMESPACE_EZ_USB_MIDI_HOST
-// MIDI_NAMESPACE::DefaultSettings
-// struct MyMidiHostSettingsDefault : public MidiHostSettingsDefault {
-//   static const unsigned SysExMaxSize = 64;  // for MIDI Library
-//   static const unsigned MidiRxBufsize = RPPICOMIDI_EZ_USB_MIDI_HOST_GET_BUFSIZE(SysExMaxSize);
-//   static const unsigned MidiTxBufsize = RPPICOMIDI_EZ_USB_MIDI_HOST_GET_BUFSIZE(SysExMaxSize);
-// };
 RPPICOMIDI_EZ_USB_MIDI_HOST_INSTANCE(usbhMIDI, MidiHostSettingsDefault);
 static uint8_t midiDevAddr = 0;
 
@@ -85,13 +79,13 @@ void setup() {
   // note: 1000000 is 1mbps! 9600 is too slow :/
   Serial1.begin(1000000);
 
-  // while (!Serial) delay(10);  // wait for native usb
+  // while (!Serial) delay(10);  // wait for debug usb
   Serial.println("midi2cv hiiiiii!");
 
   // check for CPU frequency, must be multiple of 120Mhz for bit-banging USB
   uint32_t cpu_hz = clock_get_hz(clk_sys);
   if (cpu_hz != 120000000UL && cpu_hz != 240000000UL) {
-    while (!Serial) delay(10);  // wait for native usb
+    while (!Serial) delay(10);  // wait for debug usb
     Serial.printf("ERROR: CPU Clock = %u, PIO USB require CPU clock must be multiple of 120 Mhz\r\n", cpu_hz);
     Serial.printf("Change CPU Clock to either 120 or 240 Mhz in Menu->CPU Speed \r\n", cpu_hz);
     while (1) delay(1);
