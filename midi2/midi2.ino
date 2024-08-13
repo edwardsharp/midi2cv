@@ -182,6 +182,10 @@ static void onMidiInWriteFail(uint8_t devAddr, uint8_t cable, bool fifoOverflow)
 /* NOTE HANDLING */
 static void onNoteOff(Channel channel, byte note, byte velocity) {
   Serial.printf("C%u: Note off#%u v=%u\r\n", channel, note, velocity);
+  if(channel > 8){
+    // this program is only setup to handle the first 8 midi channels.
+    return;
+  }
   // zero-indexed channel:
   int ch = channel - 1;
   notes[ch] -= 1;
@@ -199,6 +203,10 @@ static void onNoteOff(Channel channel, byte note, byte velocity) {
 
 static void onNoteOn(Channel channel, byte note, byte velocity) {
   Serial.printf("C%u: Note on#%u v=%u\r\n", channel, note, velocity);
+  if(channel > 8){
+    // this program is only setup to handle the first 8 midi channels.
+    return;
+  }
   int note_v = note2voltage(note);
   int velocity_v = velo2voltage(velocity);
   // zero-index channel:
